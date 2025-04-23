@@ -22,7 +22,7 @@ group = "de.linusdev"
 version = "1.0.0"
 
 repositories {
-
+    gradlePluginPortal()
     mavenCentral()
     mavenLocal()
 }
