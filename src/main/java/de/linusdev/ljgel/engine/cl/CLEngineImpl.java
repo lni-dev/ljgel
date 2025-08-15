@@ -207,6 +207,11 @@ public class CLEngineImpl<G extends CLGame> implements CLEngine<G>, NativeIntero
     }
 
     @Override
+    public @NotNull <R> Future<R, Nothing> runDelayedSupervised(long delay, @NotNull AdvTRunnable<R, ?> runnable) {
+        throw new Error("Not yet implemented");
+    }
+
+    @Override
     public @NotNull <R> Future<R, Nothing> runSupervised(@NotNull TFunction<Stack, R, ?> runnable) {
         throw new UnsupportedOperationException();
     }

@@ -349,6 +349,8 @@ public class RegistryLoader {
         // Whatever this is: IOSurfaceRef
         types.put("IOSurfaceRef", new BasicType("IOSurfaceRef", CTypes.POINTER, "vulkan"));
 
+        // OpenHarmony
+        types.put("OHNativeWindow", new BasicType("OHNativeWindow", CTypes.VOID, "oh"));
 
         // Default C types
         addType(CTypes.INT8);
@@ -470,6 +472,13 @@ public class RegistryLoader {
                 "" + vkMakeVideoStdVersion(1, 0, 0),
                 null, false, group
         ));
+        group.addDefine(new GroupedDefinesType.Define(
+                "VK_STD_VULKAN_VIDEO_CODEC_VP9_DECODE_API_VERSION_1_0_0",
+                null, CTypes.INT32,
+                "" + vkMakeVideoStdVersion(1, 0, 0),
+                null, false, group
+        ));
+
 
         addType(group);
     }
@@ -517,8 +526,23 @@ public class RegistryLoader {
             if (reqNode.getNodeType() == Node.TEXT_NODE)
                 continue;
 
+            if(reqNode.getNodeName().equals("deprecate")) {
+
+                for (Node node : iterableNode(reqNode)) {
+                    if (node.getNodeName().equals("comment"))
+                        continue;
+                    else if (node.getNodeType() == Node.TEXT_NODE)
+                        continue;
+                   else if (node.getNodeName().equals("command")) {
+                        // TODO: add deprecation note to the commands
+                   } else
+                       LOG.debug("Unhandled Node in '<deprecate>' (extensions): " + node.getNodeName());
+                }
+                continue;
+            }
+
             if (!reqNode.getNodeName().equals("require"))
-                throw new IllegalStateException("Unexpected Node in <feature> '" + name + "': " + reqNode.getNodeName());
+                throw new IllegalStateException("Unexpected Node in <feature name='" + name + "'> '" + name + "': " + reqNode.getNodeName());
 
             for (Node node : iterableNode(reqNode)) {
                 if (node.getNodeName().equals("comment"))
@@ -568,9 +592,26 @@ public class RegistryLoader {
                 if (reqNode.getNodeType() == Node.TEXT_NODE)
                     continue;
 
-                if (reqNode.getNodeName().equals("remove"))
+                if (reqNode.getNodeName().equals("remove")) {
                     LOG.debug("Ignored remove node.");
-                else if (!reqNode.getNodeName().equals("require"))
+                    continue;
+                }
+
+                if(reqNode.getNodeName().equals("deprecate")) {
+                    for (Node node : iterableNode(reqNode)) {
+                        if (node.getNodeName().equals("comment"))
+                            continue;
+                        else if (node.getNodeType() == Node.TEXT_NODE)
+                            continue;
+                        else if (node.getNodeName().equals("commands")) {
+                            // TODO add to command doc
+                        } else
+                            LOG.debug("Unhandled Node in '<deprecate>' (extensions): " + node.getNodeName());
+                    }
+                    continue;
+                }
+
+                if (!reqNode.getNodeName().equals("require"))
                     throw new IllegalStateException("Unexpected Node in <extension>: " + reqNode.getNodeName());
 
                 for (Node node : iterableNode(reqNode)) {

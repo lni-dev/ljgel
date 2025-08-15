@@ -219,6 +219,12 @@ public class GroupedDefinesType implements Type {
 
                 String value = valueAttr.getNodeValue();
                 value = value.replace("U", "").replace("LL", "L");
+
+                if(type == CTypes.UINT8 && value.equals("0xFF")) {
+                    // Java does not support unsinged bytes so we have to cast it.
+                    value = "(byte) 0xFF";
+                }
+
                 stringValue = value;
                 alias = null;
             }
