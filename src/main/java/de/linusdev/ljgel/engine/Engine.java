@@ -42,6 +42,15 @@ public interface Engine<GAME extends Game> extends HasAsyncManager, HasGame<GAME
         });
     }
 
+    <R> @NotNull Future<R, Nothing> runDelayedSupervised(long delay, @NotNull AdvTRunnable<R, ?> runnable);
+
+    default @NotNull Future<Nothing, Nothing> runDelayedSupervisedV(long delay, @NotNull TRunnable<?> runnable) {
+        return runDelayedSupervised(delay, () -> {
+            runnable.run();
+            return Nothing.INSTANCE;
+        });
+    }
+
     /* ================================================================================================= *\
     |                                                                                                     |
     |                                             Engine Infos                                            |

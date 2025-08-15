@@ -15,17 +15,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractEngine<GAME extends Game> implements Engine<GAME>, HasAsyncManager {
 
     protected final @NotNull GAME game;
     protected final @NotNull Executor executor;
+    protected final @NotNull ScheduledExecutorService scheduledExecutor;
     protected final @NotNull BasicAsyncManager asyncManager;
     protected final @NotNull TickerImpl ticker;
 
     protected AbstractEngine(@NotNull GAME game) {
         this.game = game;
         this.executor = Executors.newWorkStealingPool(16);
+        this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
         this.asyncManager = new BasicAsyncManager();
         this.ticker = new TickerImpl(game.getMillisPerTick());
 
@@ -42,6 +46,25 @@ public abstract class AbstractEngine<GAME extends Game> implements Engine<GAME>,
                 future.complete(null, Nothing.INSTANCE, new ThrowableAsyncError(t));
             }
         });
+        return future;
+    }
+
+    @Override
+    public @NotNull <R> Future<R, Nothing> runDelayedSupervised(long delay, @NotNull AdvTRunnable<R, ?> runnable) {
+        var future = CompletableFuture.<R, Nothing>create(getAsyncManager(), true);
+        scheduledExecutor.schedule(() -> {
+            if(future.startIfNotCanceled()) {
+                return;
+            }
+            executor.execute(() -> {
+                try {
+                    future.complete(runnable.run(), Nothing.INSTANCE, null);
+                } catch (Throwable t) {
+                    LOG.throwable(new Exception("Uncaught exception in runSupervised runnable: ", t));
+                    future.complete(null, Nothing.INSTANCE, new ThrowableAsyncError(t));
+                }
+            });
+        }, delay, TimeUnit.MILLISECONDS);
         return future;
     }
 
