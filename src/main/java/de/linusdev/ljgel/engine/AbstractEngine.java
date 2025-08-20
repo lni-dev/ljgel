@@ -29,10 +29,9 @@ public abstract class AbstractEngine<GAME extends Game> implements Engine<GAME>,
     protected AbstractEngine(@NotNull GAME game) {
         this.game = game;
         this.executor = Executors.newWorkStealingPool(16);
-        this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+        this.scheduledExecutor = Executors.newSingleThreadScheduledExecutor(Engine.createThreadFactory("ljgel-delayed-supervised"));
         this.asyncManager = new BasicAsyncManager();
         this.ticker = new TickerImpl(game.getMillisPerTick());
-
     }
 
     @Override

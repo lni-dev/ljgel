@@ -16,6 +16,7 @@
 
 package de.linusdev.ljgel.engine.ticker;
 
+import de.linusdev.ljgel.engine.Engine;
 import de.linusdev.llog.LLog;
 import de.linusdev.llog.base.LogInstance;
 import de.linusdev.lutils.collections.llist.LLinkedList;
@@ -45,7 +46,7 @@ public class TickerImpl implements Runnable, Ticker {
     public TickerImpl(long millisPerTick) {
         this.tickables = new LLinkedList<>();
         this.millisPerTick = millisPerTick;
-        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.executor = Executors.newSingleThreadScheduledExecutor(Engine.createThreadFactory("ljgel-ticker"));
     }
 
     public synchronized void start() {

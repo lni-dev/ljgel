@@ -29,7 +29,24 @@ import de.linusdev.lutils.interfaces.TRunnable;
 import de.linusdev.lutils.version.Version;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.ThreadFactory;
+
 public interface Engine<GAME extends Game> extends HasAsyncManager, HasGame<GAME> {
+
+    static @NotNull ThreadFactory createThreadFactory(@NotNull String source) {
+        return new ThreadFactory() {
+            private int nextId = 0;
+            @Override
+            public synchronized Thread newThread(@NotNull Runnable r) {
+                Thread thread = new Thread(r, source + "-thread-" + nextId++);
+                thread.setDaemon(true);
+                thread.setUncaughtExceptionHandler((t, e) -> {
+                    LLog.getLogInstance(t.getName(), null).throwable(e);
+                });
+                return thread;
+            }
+        };
+    }
 
     @NotNull LogInstance LOG = LLog.getLogInstance();
 
